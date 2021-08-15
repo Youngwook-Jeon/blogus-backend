@@ -1,6 +1,5 @@
 package com.young.blogusbackend.modules.user;
 
-import com.young.blogusbackend.infra.constant.SecurityConstant;
 import com.young.blogusbackend.infra.exception.AccountExistsException;
 import com.young.blogusbackend.infra.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final SecurityConstant securityConstant;
-
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
-    private final JwtUtil jwtUtil = new JwtUtil();
+    private final JwtUtil jwtUtil;
 
     @Override
     public UserResponse register(UserDto userDto) {
@@ -30,19 +27,12 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         User userInDb = userRepository.save(user);
         UserResponse userResponse = modelMapper.map(userInDb, UserResponse.class);
-        System.out.println(userResponse);
-        return makeCompleteUserResponse(userResponse);
+        return completeUserResponse(userResponse);
     }
 
-    private UserResponse makeCompleteUserResponse(UserResponse userResponse) {
-        System.out.println(jwtUtil);
+    private UserResponse completeUserResponse(UserResponse userResponse) {
         userResponse.setStatus("OK");
-        System.out.println(userResponse);
-        System.out.println(jwtUtil.shortExpire);
-        System.out.println(securityConstant.getTokenSecret());
         userResponse.setMessage("회원가입에 성공했습니다.");
-        String s = jwtUtil.generateActiveToken(userResponse.getName(), userResponse.getAccount(), userResponse.getPassword());
-        System.out.println(s);
         userResponse.setActiveToken(
                 jwtUtil.generateActiveToken(
                         userResponse.getName(),
@@ -50,7 +40,7 @@ public class UserServiceImpl implements UserService {
                         userResponse.getPassword()
                 )
         );
-        System.out.println(userResponse);
+
         return userResponse;
     }
 }
