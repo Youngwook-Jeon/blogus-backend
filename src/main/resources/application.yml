@@ -25,3 +25,5 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.type: trace
+token:
+  secret: ykIQjX6bZSHO0mkjkNL8U3Ht9NtzjtIZ
