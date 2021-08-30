@@ -1,5 +1,6 @@
 package com.young.blogusbackend.modules.user;
 
+import com.young.blogusbackend.infra.response.GenericResponse;
 import com.young.blogusbackend.modules.user.form.RegisterForm;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.mail.MessagingException;
 import javax.validation.Valid;
 
 @RestController @RequestMapping("/api")
@@ -18,7 +20,7 @@ public class UserController {
     private final ModelMapper modelMapper;
 
     @PostMapping("/register")
-    public UserResponse register(@RequestBody @Valid RegisterForm registerForm) {
+    public GenericResponse register(@RequestBody @Valid RegisterForm registerForm) throws MessagingException {
         UserDto userDto = modelMapper.map(registerForm, UserDto.class);
         return userService.register(userDto);
     }

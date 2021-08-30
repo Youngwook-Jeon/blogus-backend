@@ -13,12 +13,12 @@ public class ValidAccountValidator implements ConstraintValidator<ValidAccount, 
         return (validPhone(account) || validEmail(account));
     }
 
-    private boolean validPhone(String account) {
+    public static boolean validPhone(String account) {
         String regExp = PHONE_REGEX;
         return account.trim().matches(regExp);
     }
 
-    private boolean validEmail(String account) {
+    public static boolean validEmail(String account) {
         String regExp = EMAIL_REGEX;
         return account.trim().matches(regExp);
     }
