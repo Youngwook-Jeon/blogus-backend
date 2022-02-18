@@ -1,10 +1,11 @@
 package com.young.blogusbackend.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
+@Data @Builder
 @AllArgsConstructor @NoArgsConstructor
 public class NotificationEmail {
 

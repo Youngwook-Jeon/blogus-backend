@@ -1,5 +1,6 @@
 package com.young.blogusbackend.service;
 
+import com.young.blogusbackend.model.NotificationEmail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;

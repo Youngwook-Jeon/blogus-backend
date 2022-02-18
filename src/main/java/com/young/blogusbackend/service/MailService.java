@@ -26,7 +26,7 @@ public class MailService {
             messageHelper.setFrom(EMAIL_FROM);
             messageHelper.setTo(notificationEmail.getRecipient());
             messageHelper.setSubject(notificationEmail.getSubject());
-            messageHelper.setText(mailContentBuilder.build(notificationEmail.getBody()), true);
+            messageHelper.setText(notificationEmail.getBody(), true);
         };
 
         try {
