@@ -1,15 +1,14 @@
 package com.young.blogusbackend.model;
 
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 import java.time.Instant;
 
-@Entity @Table(name = "\"user\"")
+@Entity @Table(name = "bloger")
 @Getter @Setter @EqualsAndHashCode(of = "id")
 @Builder @AllArgsConstructor @NoArgsConstructor
-public class User {
+public class Bloger {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,7 +22,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @ColumnDefault(value = "https://res.cloudinary.com/dw6i0vp1r/image/upload/v1608643768/vvcldnbsfevfzpnzvtta.jpg")
+    @Column(nullable = false)
     private String avatar;
 
     @Enumerated(EnumType.STRING)
@@ -37,4 +36,11 @@ public class User {
 
     @Column(nullable = false)
     private boolean enabled;
+
+    @PrePersist
+    public void prePersist() {
+        this.avatar = this.avatar == null ?
+                "https://res.cloudinary.com/dw6i0vp1r/image/upload/v1608643768/vvcldnbsfevfzpnzvtta.jpg" :
+                this.avatar;
+    }
 }
