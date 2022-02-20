@@ -37,6 +37,11 @@ public class AppExceptionHandler {
         return new ResponseEntity<>(validationErrors, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(value = { SpringBlogusException.class })
+    public ResponseEntity<Object> handleSpringBlogusException(SpringBlogusException ex, WebRequest webRequest) {
+        return new ResponseEntity<>(getErrorResponse(ex), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(value = { Exception.class })
     public ResponseEntity<Object> handleException(Exception ex, WebRequest webRequest) {
         return new ResponseEntity<>(getErrorResponse(ex), HttpStatus.INTERNAL_SERVER_ERROR);

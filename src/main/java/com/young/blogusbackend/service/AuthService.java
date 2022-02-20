@@ -1,6 +1,7 @@
 package com.young.blogusbackend.service;
 
 import com.young.blogusbackend.dto.RegisterRequest;
+import com.young.blogusbackend.exception.SpringBlogusException;
 import com.young.blogusbackend.model.NotificationEmail;
 import com.young.blogusbackend.model.Role;
 import com.young.blogusbackend.model.Bloger;
@@ -16,6 +17,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -45,11 +47,11 @@ public class AuthService {
     }
 
     private void sendConfirmEmail(Bloger bloger) {
-        String host = env.getProperty("blogus.host");
+        String client = env.getProperty("blogus.client");
         String token = generateVerificationToken(bloger);
         Context context = new Context();
         context.setVariable("name", bloger.getName());
-        context.setVariable("link", host + "/api/auth/accountVerification/" + token);
+        context.setVariable("link", client + "/activate/" + token);
         context.setVariable("linkName", "이메일 인증하기");
         context.setVariable("message", "블로거스에 가입하신 것을 환영합니다! 계정을 활성화하기 위해 아래 url을 클릭하세요: ");
         String message = templateEngine.process("mailTemplate", context);
@@ -71,5 +73,22 @@ public class AuthService {
 
         verificationTokenRepository.save(verificationToken);
         return token;
+    }
+
+    public void verifyAccount(String token) {
+        Optional<VerificationToken> verificationToken =
+                verificationTokenRepository.findByToken(token);
+        verificationToken.orElseThrow(() -> new SpringBlogusException("유효한 토큰이 아닙니다."));
+        fetchEnableUser(verificationToken.get());
+    }
+
+    private void fetchEnableUser(VerificationToken verificationToken) {
+        Bloger bloger = verificationToken.getBloger();
+        if (bloger == null) {
+            throw new SpringBlogusException("존재하지 않는 유저입니다.");
+        }
+
+        bloger.setEnabled(true);
+        blogerRepository.save(bloger);
     }
 }

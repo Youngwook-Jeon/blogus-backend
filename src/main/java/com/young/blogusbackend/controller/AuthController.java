@@ -21,4 +21,11 @@ public class AuthController {
         authService.register(registerRequest);
         return new GenericResponse("등록에 성공했습니다. 이메일을 확인해주세요.");
     }
+
+    @GetMapping("/accountVerification/{token}")
+    @ResponseStatus(HttpStatus.OK)
+    public GenericResponse verifyAccount(@PathVariable String token) {
+        authService.verifyAccount(token);
+        return new GenericResponse("계정이 활성화되었습니다.");
+    }
 }

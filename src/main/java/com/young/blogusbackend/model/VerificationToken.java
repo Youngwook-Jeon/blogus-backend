@@ -17,7 +17,7 @@ public class VerificationToken {
 
     private String token;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne
     private Bloger bloger;
 
     private Instant expiryDate;
