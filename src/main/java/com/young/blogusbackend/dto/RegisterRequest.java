@@ -8,6 +8,7 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
 @Data @PasswordMatch
 @NoArgsConstructor @AllArgsConstructor
@@ -22,6 +23,10 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "비밀번호가 필요합니다.")
+    @Pattern(
+            regexp = "^(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,50}$",
+            message = "적어도 하나의 영문자, 숫자, 특수문자를 포함하여 8자리 이상이어야 합니다."
+    )
     private String password;
 
     @NotBlank(message = "확인 비밀번호가 필요합니다.")

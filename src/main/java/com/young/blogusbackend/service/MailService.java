@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 public class MailService {
 
     private final JavaMailSender mailSender;
-    private final MailContentBuilder mailContentBuilder;
     private final String EMAIL_FROM = "mayerjeon0116@gmail.com";
 
     @Async
