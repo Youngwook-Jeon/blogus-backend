@@ -5,10 +5,12 @@ import com.young.blogusbackend.dto.GenericResponse;
 import com.young.blogusbackend.dto.LoginRequest;
 import com.young.blogusbackend.dto.RegisterRequest;
 import com.young.blogusbackend.service.AuthService;
+import com.young.blogusbackend.service.CookieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -17,6 +19,7 @@ import javax.validation.Valid;
 public class AuthController {
 
     private final AuthService authService;
+    private final CookieService cookieService;
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
@@ -38,7 +41,10 @@ public class AuthController {
             @Valid @RequestBody LoginRequest loginRequest,
             HttpServletResponse response
     ) {
-        authService.login(loginRequest);
-        return null;
+        AuthenticationResponse authenticationResponse = authService.login(loginRequest);
+        Cookie refreshtoken = cookieService
+                .createCookie("refreshtoken", authenticationResponse.getRefreshToken());
+        response.addCookie(refreshtoken);
+        return authenticationResponse;
     }
 }

@@ -1,5 +1,6 @@
 package com.young.blogusbackend.service;
 
+import com.young.blogusbackend.dto.AuthenticationResponse;
 import com.young.blogusbackend.dto.BlogerResponse;
 import com.young.blogusbackend.dto.LoginRequest;
 import com.young.blogusbackend.dto.RegisterRequest;
@@ -10,9 +11,15 @@ import com.young.blogusbackend.model.Role;
 import com.young.blogusbackend.model.VerificationToken;
 import com.young.blogusbackend.repository.BlogerRepository;
 import com.young.blogusbackend.repository.VerificationTokenRepository;
+import com.young.blogusbackend.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +42,7 @@ public class AuthService {
     private final Environment env;
     private final TemplateEngine templateEngine;
     private final AuthenticationManager authenticationManager;
+    private final JwtProvider jwtProvider;
 
     public void register(RegisterRequest registerRequest) {
         Bloger bloger = new Bloger();
@@ -96,8 +104,50 @@ public class AuthService {
         blogerRepository.save(bloger);
     }
 
-    public BlogerResponse login(LoginRequest loginRequest) {
+    public AuthenticationResponse login(LoginRequest loginRequest) {
+        Authentication authentication = authenticationManager
+                .authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                loginRequest.getEmail(),
+                                loginRequest.getPassword()
+                        )
+                );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        Bloger bloger = getCurrentUser();
+        return getAuthenticationResponse(bloger);
+    }
 
-        return null;
+    private AuthenticationResponse getAuthenticationResponse(Bloger bloger) {
+        String refreshToken = jwtProvider.generateRefreshToken(bloger);
+        bloger.setRefreshToken(refreshToken);
+        blogerRepository.save(bloger);
+
+        BlogerResponse blogerResponse = BlogerResponse.builder()
+                .id(bloger.getId())
+                .name(bloger.getName())
+                .email(bloger.getEmail())
+                .avatar(bloger.getAvatar())
+                .role(bloger.getRole().name())
+                .enabled(bloger.isEnabled())
+                .build();
+
+        return AuthenticationResponse.builder()
+                .msg("로그인이 성공했습니다!")
+                .accessToken(jwtProvider.generateAccessToken(bloger))
+                .refreshToken(refreshToken)
+                .user(blogerResponse)
+                .build();
+    }
+
+    private Bloger getCurrentUser() {
+        User principal = (User) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+        return blogerRepository.findByEmail(principal.getUsername())
+                .orElseThrow(
+                        () -> new UsernameNotFoundException(
+                                principal.getUsername() + " 계정을 찾을 수 없습니다."
+                        )
+                );
     }
 }
