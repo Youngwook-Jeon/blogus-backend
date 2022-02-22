@@ -1,15 +1,18 @@
 package com.young.blogusbackend.service;
 
+import com.young.blogusbackend.dto.BlogerResponse;
+import com.young.blogusbackend.dto.LoginRequest;
 import com.young.blogusbackend.dto.RegisterRequest;
 import com.young.blogusbackend.exception.SpringBlogusException;
+import com.young.blogusbackend.model.Bloger;
 import com.young.blogusbackend.model.NotificationEmail;
 import com.young.blogusbackend.model.Role;
-import com.young.blogusbackend.model.Bloger;
 import com.young.blogusbackend.model.VerificationToken;
 import com.young.blogusbackend.repository.BlogerRepository;
 import com.young.blogusbackend.repository.VerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +34,7 @@ public class AuthService {
     private final MailService mailService;
     private final Environment env;
     private final TemplateEngine templateEngine;
+    private final AuthenticationManager authenticationManager;
 
     public void register(RegisterRequest registerRequest) {
         Bloger bloger = new Bloger();
@@ -90,5 +94,10 @@ public class AuthService {
 
         bloger.setEnabled(true);
         blogerRepository.save(bloger);
+    }
+
+    public BlogerResponse login(LoginRequest loginRequest) {
+
+        return null;
     }
 }
