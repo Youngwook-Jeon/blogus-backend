@@ -24,8 +24,9 @@ public class CookieService {
     private Cookie createCookie(String cookieName, String value, String cookiePath, int maxAge) {
         Cookie cookie = new Cookie(cookieName, value);
         cookie.setHttpOnly(true);
-        cookie.setPath(cookiePath);
+        cookie.setPath("/");
         cookie.setMaxAge(maxAge);
+        cookie.setSecure(false);
 
         return cookie;
     }
@@ -38,6 +39,8 @@ public class CookieService {
         Cookie deletedCookie = new Cookie(cookieName, null);
         deletedCookie.setMaxAge(0);
         deletedCookie.setPath("/");
+        deletedCookie.setSecure(false);
+
         return deletedCookie;
     }
 }

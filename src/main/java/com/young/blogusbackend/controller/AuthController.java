@@ -57,7 +57,6 @@ public class AuthController {
             HttpServletResponse response
     ) {
         if (token != null) {
-            System.out.println(token.getValue());
             AuthenticationResponse authenticationResponse =
                     authService.refreshToken(token.getValue());
             Cookie newToken = cookieService
