@@ -1,5 +1,6 @@
 package com.young.blogusbackend.service;
 
+import com.young.blogusbackend.exception.SpringBlogusException;
 import com.young.blogusbackend.model.Bloger;
 import com.young.blogusbackend.repository.BlogerRepository;
 import lombok.RequiredArgsConstructor;
