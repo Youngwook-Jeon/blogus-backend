@@ -8,6 +8,7 @@ import com.young.blogusbackend.service.AuthService;
 import com.young.blogusbackend.service.CookieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
@@ -42,9 +43,28 @@ public class AuthController {
             HttpServletResponse response
     ) {
         AuthenticationResponse authenticationResponse = authService.login(loginRequest);
-        Cookie refreshtoken = cookieService
+        Cookie refreshToken = cookieService
                 .createCookie("refreshtoken", authenticationResponse.getRefreshToken());
-        response.addCookie(refreshtoken);
+        response.addCookie(refreshToken);
         return authenticationResponse;
+    }
+
+    @GetMapping("/refreshToken")
+    public ResponseEntity<Object> refreshToken(
+            @CookieValue(value = "refreshtoken", required = false) Cookie token,
+            HttpServletResponse response
+    ) {
+        if (token != null) {
+            AuthenticationResponse authenticationResponse =
+                    authService.refreshToken(token.getValue());
+            Cookie newToken = cookieService
+                    .createCookie(
+                            "refreshtoken",
+                            authenticationResponse.getRefreshToken()
+                    );
+            response.addCookie(newToken);
+            return ResponseEntity.ok().body(authenticationResponse);
+        }
+        return ResponseEntity.badRequest().body(new GenericResponse("로그인이 필요합니다."));
     }
 }

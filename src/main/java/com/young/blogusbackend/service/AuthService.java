@@ -23,6 +23,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -49,7 +50,7 @@ public class AuthService {
         bloger.setName(registerRequest.getName());
         bloger.setEmail(registerRequest.getEmail());
         bloger.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        bloger.setRole(Role.USER);
+        bloger.setRole(Role.ROLE_USER);
         bloger.setCreatedAt(Instant.now());
         bloger.setUpdatedAt(Instant.now());
         bloger.setEnabled(false);
@@ -114,10 +115,10 @@ public class AuthService {
                 );
         SecurityContextHolder.getContext().setAuthentication(authentication);
         Bloger bloger = getCurrentUser();
-        return getAuthenticationResponse(bloger);
+        return getAuthenticationResponseWithMessage(bloger, "로그인이 성공했습니다!");
     }
 
-    private AuthenticationResponse getAuthenticationResponse(Bloger bloger) {
+    private AuthenticationResponse getAuthenticationResponseWithMessage(Bloger bloger, String message) {
         String refreshToken = jwtProvider.generateRefreshToken(bloger);
         bloger.setRefreshToken(refreshToken);
         blogerRepository.save(bloger);
@@ -132,7 +133,7 @@ public class AuthService {
                 .build();
 
         return AuthenticationResponse.builder()
-                .msg("로그인이 성공했습니다!")
+                .msg(message)
                 .accessToken(jwtProvider.generateAccessToken(bloger))
                 .refreshToken(refreshToken)
                 .user(blogerResponse)
@@ -149,5 +150,25 @@ public class AuthService {
                                 principal.getUsername() + " 계정을 찾을 수 없습니다."
                         )
                 );
+    }
+
+    public AuthenticationResponse refreshToken(String token) {
+        if (!(StringUtils.hasText(token) && jwtProvider.validateTokenBySecret(token, JwtProvider.REFRESH_TOKEN_SECRET))) {
+            throw new SpringBlogusException("로그인이 필요합니다.");
+        }
+        Long blogerId = jwtProvider.getDataFromJwt(token, JwtProvider.REFRESH_TOKEN_SECRET);
+        if (blogerId == null) {
+            throw new SpringBlogusException("로그인이 필요합니다.");
+        }
+
+        Bloger bloger = blogerRepository.findById(blogerId)
+                .orElseThrow(
+                        () -> new SpringBlogusException("존재하지 않는 유저입니다.")
+                );
+
+        if (!token.equals(bloger.getRefreshToken())) {
+            throw new SpringBlogusException("로그인이 필요합니다.");
+        }
+        return getAuthenticationResponseWithMessage(bloger, "ok");
     }
 }
