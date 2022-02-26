@@ -171,4 +171,10 @@ public class AuthService {
         }
         return getAuthenticationResponseWithMessage(bloger, "ok");
     }
+
+    public void logout() {
+        Bloger currentUser = getCurrentUser();
+        currentUser.setRefreshToken(null);
+        blogerRepository.save(currentUser);
+    }
 }

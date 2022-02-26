@@ -15,6 +15,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import static com.young.blogusbackend.service.CookieService.REFRESH_TOKEN_COOKIE_NAME;
+
 @RestController
 @RequestMapping("/api/auth") @RequiredArgsConstructor
 public class AuthController {
@@ -44,27 +46,34 @@ public class AuthController {
     ) {
         AuthenticationResponse authenticationResponse = authService.login(loginRequest);
         Cookie refreshToken = cookieService
-                .createCookie("refreshtoken", authenticationResponse.getRefreshToken());
+                .createRefreshTokenCookie(authenticationResponse.getRefreshToken());
         response.addCookie(refreshToken);
         return authenticationResponse;
     }
 
     @GetMapping("/refreshToken")
     public ResponseEntity<Object> refreshToken(
-            @CookieValue(value = "refreshtoken", required = false) Cookie token,
+            @CookieValue(value = REFRESH_TOKEN_COOKIE_NAME, required = false) Cookie token,
             HttpServletResponse response
     ) {
         if (token != null) {
+            System.out.println(token.getValue());
             AuthenticationResponse authenticationResponse =
                     authService.refreshToken(token.getValue());
             Cookie newToken = cookieService
-                    .createCookie(
-                            "refreshtoken",
-                            authenticationResponse.getRefreshToken()
-                    );
+                    .createRefreshTokenCookie(authenticationResponse.getRefreshToken());
             response.addCookie(newToken);
             return ResponseEntity.ok().body(authenticationResponse);
         }
         return ResponseEntity.badRequest().body(new GenericResponse("로그인이 필요합니다."));
+    }
+
+    @GetMapping("/logout")
+    @ResponseStatus(HttpStatus.OK)
+    public GenericResponse logout(HttpServletResponse response) {
+        authService.logout();
+        Cookie deletedCookie = cookieService.deleteRefreshTokenCookie();
+        response.addCookie(deletedCookie);
+        return new GenericResponse("로그아웃되었습니다.");
     }
 }
