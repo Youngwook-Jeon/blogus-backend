@@ -46,14 +46,15 @@ public class AuthService {
     private final JwtProvider jwtProvider;
 
     public void register(RegisterRequest registerRequest) {
-        Bloger bloger = new Bloger();
-        bloger.setName(registerRequest.getName());
-        bloger.setEmail(registerRequest.getEmail());
-        bloger.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        bloger.setRole(Role.ROLE_USER);
-        bloger.setCreatedAt(Instant.now());
-        bloger.setUpdatedAt(Instant.now());
-        bloger.setEnabled(false);
+        Bloger bloger = Bloger.builder()
+                .name(registerRequest.getName())
+                .email(registerRequest.getEmail())
+                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .role(Role.ROLE_USER)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .enabled(false)
+                .build();
 
         blogerRepository.save(bloger);
         sendConfirmEmail(bloger);

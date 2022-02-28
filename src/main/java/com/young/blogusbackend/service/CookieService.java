@@ -13,18 +13,17 @@ import static com.young.blogusbackend.security.JwtProvider.REFRESH_TOKEN_EXPIRAT
 public class CookieService {
 
     private final Environment env;
-    public static final String REFRESH_TOKEN_COOKIE_PATH = "/api/auth/refreshToken";
     public static final String REFRESH_TOKEN_COOKIE_NAME = "refreshtoken";
 
     public Cookie createRefreshTokenCookie(String value) {
         int maxAge = (int) (Long.parseLong(env.getProperty(REFRESH_TOKEN_EXPIRATION_TIME)) / 1000);
-        return createCookie(REFRESH_TOKEN_COOKIE_NAME, value, REFRESH_TOKEN_COOKIE_PATH, maxAge);
+        return createCookie(REFRESH_TOKEN_COOKIE_NAME, value, "/", maxAge);
     }
 
     private Cookie createCookie(String cookieName, String value, String cookiePath, int maxAge) {
         Cookie cookie = new Cookie(cookieName, value);
         cookie.setHttpOnly(true);
-        cookie.setPath("/");
+        cookie.setPath(cookiePath);
         cookie.setMaxAge(maxAge);
         cookie.setSecure(false);
 
@@ -36,11 +35,6 @@ public class CookieService {
     }
 
     private Cookie deleteCookie(String cookieName) {
-        Cookie deletedCookie = new Cookie(cookieName, null);
-        deletedCookie.setMaxAge(0);
-        deletedCookie.setPath("/");
-        deletedCookie.setSecure(false);
-
-        return deletedCookie;
+        return createCookie(cookieName, null, "/", 0);
     }
 }
