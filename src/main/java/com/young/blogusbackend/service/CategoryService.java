@@ -56,4 +56,16 @@ public class CategoryService {
                 .map(this::getCategoryResponse)
                 .collect(Collectors.toList());
     }
+
+    public void updateCategory(Long id, CategoryRequest categoryRequest) {
+        Category category = findCategoryById(id);
+        category.setName(categoryRequest.getName().toLowerCase(Locale.ROOT));
+        category.setUpdatedAt(Instant.now());
+        categoryRepository.save(category);
+    }
+
+    private Category findCategoryById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new SpringBlogusException("존재하지 않는 카테고리입니다."));
+    }
 }

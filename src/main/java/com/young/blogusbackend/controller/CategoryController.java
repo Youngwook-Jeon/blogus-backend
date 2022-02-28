@@ -2,6 +2,7 @@ package com.young.blogusbackend.controller;
 
 import com.young.blogusbackend.dto.CategoryRequest;
 import com.young.blogusbackend.dto.CategoryResponse;
+import com.young.blogusbackend.dto.GenericResponse;
 import com.young.blogusbackend.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,4 +31,17 @@ public class CategoryController {
     public List<CategoryResponse> getAllCategories() {
         return categoryService.getAllCategories();
     }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.OK)
+    public GenericResponse updateCategory(
+            @PathVariable Long id,
+            @Valid @RequestBody CategoryRequest categoryRequest
+    ) {
+        categoryService.updateCategory(id, categoryRequest);
+        return new GenericResponse("카테고리가 업데이트되었습니다.");
+    }
+
+    // TODO: Delete category
 }
