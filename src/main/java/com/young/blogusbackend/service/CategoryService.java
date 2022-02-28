@@ -10,8 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -41,5 +43,17 @@ public class CategoryService {
                 .id(category.getId())
                 .name(category.getName())
                 .build();
+    }
+
+    public List<CategoryResponse> getAllCategories() {
+        List<Category> categories = categoryRepository.findAllByOrderByCreatedAtDesc();
+
+        return mapCategoriesToResponses(categories);
+    }
+
+    private List<CategoryResponse> mapCategoriesToResponses(List<Category> categories) {
+        return categories.stream()
+                .map(this::getCategoryResponse)
+                .collect(Collectors.toList());
     }
 }
