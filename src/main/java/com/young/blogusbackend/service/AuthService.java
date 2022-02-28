@@ -17,6 +17,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -107,13 +108,19 @@ public class AuthService {
     }
 
     public AuthenticationResponse login(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager
-                .authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                                loginRequest.getEmail(),
-                                loginRequest.getPassword()
-                        )
-                );
+        Authentication authentication;
+        try {
+             authentication = authenticationManager
+                    .authenticate(
+                            new UsernamePasswordAuthenticationToken(
+                                    loginRequest.getEmail(),
+                                    loginRequest.getPassword()
+                            )
+                    );
+        } catch (AuthenticationException e) {
+            throw new SpringBlogusException("존재하지 않는 계정이거나 비밀번호가 일치하지 않습니다.");
+        }
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         Bloger bloger = getCurrentUser();
         return getAuthenticationResponseWithMessage(bloger, "로그인이 성공했습니다!");
