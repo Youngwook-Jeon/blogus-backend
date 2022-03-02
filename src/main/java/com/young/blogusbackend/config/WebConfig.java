@@ -18,10 +18,11 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry corsRegistry) {
         corsRegistry.addMapping("/**")
                 .allowedOrigins(env.getProperty("blogus.client"))
-                .allowedMethods("POST", "GET", "PUT", "OPTIONS", "DELETE", "HEAD")
+                .allowedMethods("POST", "GET", "PUT", "OPTIONS", "DELETE", "PATCH", "HEAD")
                 .maxAge(3600L)
                 .allowedHeaders("*")
-                .exposedHeaders("Authorization", "Set-Cookie")
+                .exposedHeaders("Origin", "Authorization", "Set-Cookie", "Content-Type", "Accept",
+                        "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials")
                 .allowCredentials(true);
     }
 }
