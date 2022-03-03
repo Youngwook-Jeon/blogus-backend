@@ -148,7 +148,7 @@ public class AuthService {
                 .build();
     }
 
-    private Bloger getCurrentUser() {
+    public Bloger getCurrentUser() {
         User principal = (User) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();

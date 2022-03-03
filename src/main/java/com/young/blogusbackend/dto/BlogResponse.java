@@ -16,8 +16,8 @@ public class BlogResponse {
     private String content;
     private String description;
     private String thumbnail;
-    private Instant createdAt;
-    private Instant updatedAt;
+    private String createdAt;
+    private String updatedAt;
     private BlogerResponse bloger;
     private CategoryResponse category;
 }
