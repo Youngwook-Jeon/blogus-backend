@@ -20,5 +20,6 @@ public abstract class BlogMapper {
 
     @Mapping(target = "createdAt", expression = "java(blog.getCreatedAt().toString())")
     @Mapping(target = "updatedAt", expression = "java(blog.getUpdatedAt().toString())")
+    @Mapping(target = "user", source = "blog.bloger")
     public abstract BlogResponse blogToBlogResponse(Blog blog);
 }

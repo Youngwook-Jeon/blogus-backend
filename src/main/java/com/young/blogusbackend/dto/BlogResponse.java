@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
 public class BlogResponse {
@@ -18,6 +16,6 @@ public class BlogResponse {
     private String thumbnail;
     private String createdAt;
     private String updatedAt;
-    private BlogerResponse bloger;
+    private BlogerResponse user;
     private CategoryResponse category;
 }
