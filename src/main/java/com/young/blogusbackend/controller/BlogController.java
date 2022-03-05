@@ -54,4 +54,10 @@ public class BlogController {
         return blogService.getBlogsByUser(bloger, pageable);
     }
 
+    @GetMapping("/blogs/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public BlogResponse getBlogById(@PathVariable Long id) {
+        return blogService.getBlogById(id);
+    }
+
 }

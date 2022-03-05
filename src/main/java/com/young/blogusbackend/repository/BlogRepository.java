@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Repository
 @Transactional(readOnly = true)
 public interface BlogRepository extends JpaRepository<Blog, Long> {
@@ -19,4 +21,8 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
 
     @EntityGraph(attributePaths = {"bloger", "category"})
     Page<Blog> findAllByBloger(Bloger bloger, Pageable pageable);
+
+    @Override
+    @EntityGraph(attributePaths = {"bloger", "category"})
+    Optional<Blog> findById(Long id);
 }

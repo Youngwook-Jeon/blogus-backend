@@ -62,4 +62,10 @@ public class BlogService {
                 .total(blogPage.getTotalPages())
                 .build();
     }
+
+    public BlogResponse getBlogById(Long id) {
+        Blog blog = blogRepository.findById(id)
+                .orElseThrow(() -> new SpringBlogusException("존재하지 않는 블로그입니다."));
+        return blogMapper.blogToBlogResponse(blog);
+    }
 }
