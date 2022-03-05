@@ -4,6 +4,7 @@ import com.young.blogusbackend.dto.BlogRequest;
 import com.young.blogusbackend.dto.BlogResponse;
 import com.young.blogusbackend.dto.BlogWithTotalPagesDto;
 import com.young.blogusbackend.dto.CategoryWithBlogsDto;
+import com.young.blogusbackend.model.Bloger;
 import com.young.blogusbackend.model.Category;
 import com.young.blogusbackend.service.BlogService;
 import lombok.RequiredArgsConstructor;
@@ -43,4 +44,14 @@ public class BlogController {
     ) {
         return blogService.getBlogsByCategory(category, pageable);
     }
+
+    @GetMapping("/blogs/user/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public BlogWithTotalPagesDto getBlogsByCategory(
+            @PathVariable("id") Bloger bloger,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return blogService.getBlogsByUser(bloger, pageable);
+    }
+
 }

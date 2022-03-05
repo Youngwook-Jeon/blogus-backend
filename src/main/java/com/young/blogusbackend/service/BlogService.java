@@ -47,6 +47,15 @@ public class BlogService {
 
     public BlogWithTotalPagesDto getBlogsByCategory(Category category, Pageable pageable) {
         Page<Blog> blogPage = blogRepository.findAllByCategory(category, pageable);
+        return getBlogDto(blogPage);
+    }
+
+    public BlogWithTotalPagesDto getBlogsByUser(Bloger bloger, Pageable pageable) {
+        Page<Blog> blogPage = blogRepository.findAllByBloger(bloger, pageable);
+        return getBlogDto(blogPage);
+    }
+
+    private BlogWithTotalPagesDto getBlogDto(Page<Blog> blogPage) {
         List<BlogResponse> blogResponses = blogMapper.blogListToBlogResponseList(blogPage.getContent());
         return BlogWithTotalPagesDto.builder()
                 .blogs(blogResponses)
