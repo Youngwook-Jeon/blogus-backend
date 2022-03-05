@@ -4,7 +4,16 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
+@NamedEntityGraph(
+        name = "Category.withBlogsAndBloger",
+        attributeNodes = {
+                @NamedAttributeNode(value = "blogs", subgraph = "bloger")
+        },
+        subgraphs = @NamedSubgraph(name = "bloger", attributeNodes = @NamedAttributeNode("bloger"))
+)
 @Entity @Table(name = "category")
 @Getter @Setter
 @EqualsAndHashCode(of = "id") @Builder
@@ -23,4 +32,8 @@ public class Category {
 
     @Column(nullable = false)
     private Instant updatedAt;
+
+    @OneToMany(mappedBy = "category")
+    @OrderBy("createdAt DESC")
+    private List<Blog> blogs = new ArrayList<>();
 }
