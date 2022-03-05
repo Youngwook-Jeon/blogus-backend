@@ -2,10 +2,14 @@ package com.young.blogusbackend.controller;
 
 import com.young.blogusbackend.dto.BlogRequest;
 import com.young.blogusbackend.dto.BlogResponse;
+import com.young.blogusbackend.dto.BlogWithTotalPagesDto;
 import com.young.blogusbackend.dto.CategoryWithBlogsDto;
 import com.young.blogusbackend.model.Category;
 import com.young.blogusbackend.service.BlogService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,5 +33,14 @@ public class BlogController {
     @ResponseStatus(HttpStatus.OK)
     public List<CategoryWithBlogsDto> getHomeBlogs() {
         return blogService.getHomeBlogs();
+    }
+
+    @GetMapping("/blogs/category/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public BlogWithTotalPagesDto getBlogsByCategory(
+            @PathVariable("id") Category category,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return blogService.getBlogsByCategory(category, pageable);
     }
 }
