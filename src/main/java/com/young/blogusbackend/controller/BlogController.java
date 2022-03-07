@@ -47,7 +47,7 @@ public class BlogController {
 
     @GetMapping("/blogs/user/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public BlogWithTotalPagesDto getBlogsByCategory(
+    public BlogWithTotalPagesDto getBlogsByUser(
             @PathVariable("id") Bloger bloger,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
