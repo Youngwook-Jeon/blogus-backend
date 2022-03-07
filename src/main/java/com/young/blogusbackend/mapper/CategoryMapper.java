@@ -1,9 +1,11 @@
 package com.young.blogusbackend.mapper;
 
 import com.young.blogusbackend.dto.BlogResponse;
+import com.young.blogusbackend.dto.BlogerResponse;
 import com.young.blogusbackend.dto.CategoryResponse;
 import com.young.blogusbackend.dto.CategoryWithBlogsDto;
 import com.young.blogusbackend.model.Blog;
+import com.young.blogusbackend.model.Bloger;
 import com.young.blogusbackend.model.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -36,4 +38,6 @@ public interface CategoryMapper {
     @Mapping(target = "user", source = "blog.bloger")
     BlogResponse blogToBlogResponse(Blog blog);
 
+    @Mapping(target = "createdAt", expression = "java(bloger.getCreatedAt().toString())")
+    BlogerResponse blogerToBlogerResponse(Bloger bloger);
 }

@@ -15,4 +15,5 @@ public class BlogerResponse {
     private String avatar;
     private String role;
     private boolean enabled;
+    private String createdAt;
 }

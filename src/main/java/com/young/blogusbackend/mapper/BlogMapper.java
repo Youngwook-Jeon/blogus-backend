@@ -2,13 +2,12 @@ package com.young.blogusbackend.mapper;
 
 import com.young.blogusbackend.dto.BlogRequest;
 import com.young.blogusbackend.dto.BlogResponse;
-import com.young.blogusbackend.dto.BlogWithTotalPagesDto;
+import com.young.blogusbackend.dto.BlogerResponse;
 import com.young.blogusbackend.model.Blog;
 import com.young.blogusbackend.model.Bloger;
 import com.young.blogusbackend.model.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
@@ -27,4 +26,7 @@ public abstract class BlogMapper {
     public abstract BlogResponse blogToBlogResponse(Blog blog);
 
     public abstract List<BlogResponse> blogListToBlogResponseList(List<Blog> blogList);
+
+    @Mapping(target = "createdAt", expression = "java(bloger.getCreatedAt().toString())")
+    public abstract BlogerResponse blogerToBlogerResponse(Bloger bloger);
 }

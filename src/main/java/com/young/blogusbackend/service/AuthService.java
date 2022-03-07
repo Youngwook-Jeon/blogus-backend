@@ -1,10 +1,10 @@
 package com.young.blogusbackend.service;
 
 import com.young.blogusbackend.dto.AuthenticationResponse;
-import com.young.blogusbackend.dto.BlogerResponse;
 import com.young.blogusbackend.dto.LoginRequest;
 import com.young.blogusbackend.dto.RegisterRequest;
 import com.young.blogusbackend.exception.SpringBlogusException;
+import com.young.blogusbackend.mapper.BlogerMapper;
 import com.young.blogusbackend.model.Bloger;
 import com.young.blogusbackend.model.NotificationEmail;
 import com.young.blogusbackend.model.Role;
@@ -45,6 +45,7 @@ public class AuthService {
     private final TemplateEngine templateEngine;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
+    private final BlogerMapper blogerMapper;
 
     public void register(RegisterRequest registerRequest) {
         Bloger bloger = Bloger.builder()
@@ -131,20 +132,11 @@ public class AuthService {
         bloger.setRefreshToken(refreshToken);
         blogerRepository.save(bloger);
 
-        BlogerResponse blogerResponse = BlogerResponse.builder()
-                .id(bloger.getId())
-                .name(bloger.getName())
-                .email(bloger.getEmail())
-                .avatar(bloger.getAvatar())
-                .role(bloger.getRole().name())
-                .enabled(bloger.isEnabled())
-                .build();
-
         return AuthenticationResponse.builder()
                 .msg(message)
                 .accessToken(jwtProvider.generateAccessToken(bloger))
                 .refreshToken(refreshToken)
-                .user(blogerResponse)
+                .user(blogerMapper.blogerToBlogerResponse(bloger))
                 .build();
     }
 
