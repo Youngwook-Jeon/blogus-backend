@@ -35,4 +35,8 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Bloger bloger;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "b_id", referencedColumnName = "id")
+    private Blog blog;
 }
