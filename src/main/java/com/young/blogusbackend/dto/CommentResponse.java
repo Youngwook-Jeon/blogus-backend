@@ -17,4 +17,5 @@ public class CommentResponse {
     private String content;
     private String createdAt;
     private String updatedAt;
+    private Boolean isDeleted;
 }

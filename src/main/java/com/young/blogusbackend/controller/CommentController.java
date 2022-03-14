@@ -3,6 +3,7 @@ package com.young.blogusbackend.controller;
 import com.young.blogusbackend.dto.CommentCreateRequest;
 import com.young.blogusbackend.dto.CommentResponse;
 import com.young.blogusbackend.dto.CommentUpdateRequest;
+import com.young.blogusbackend.dto.GenericResponse;
 import com.young.blogusbackend.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -37,5 +38,11 @@ public class CommentController {
             @RequestBody CommentUpdateRequest updateRequest
     ) {
         return commentService.updateComment(id, updateRequest);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public CommentResponse deleteComment(@PathVariable Long id) {
+        return commentService.deleteComment(id);
     }
 }

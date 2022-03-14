@@ -24,6 +24,7 @@ import java.util.Objects;
 @Transactional
 public class CommentService {
 
+    public static final String DELETED_CONTENT = "삭제된 댓글입니다.";
     private final BlogRepository blogRepository;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
@@ -35,6 +36,7 @@ public class CommentService {
         Bloger bloger = authService.getCurrentUser();
         Comment comment = commentMapper.commentCreateRequestToComment(createRequest, bloger, blog);
         commentRepository.save(comment);
+
         return commentMapper.commentToCommentResponse(comment);
     }
 
@@ -51,9 +53,35 @@ public class CommentService {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
+        if (comment.getIsDeleted()) {
+            throw new SpringBlogusException("이미 삭제된 댓글입니다.");
+        }
+
         comment.setContent(updateRequest.getContent());
         comment.setUpdatedAt(Instant.now());
         commentRepository.save(comment);
+
+        return commentMapper.commentToCommentResponse(comment);
+    }
+
+    public CommentResponse deleteComment(Long id) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new SpringBlogusException("존재하지 않는 댓글입니다."));
+        Bloger currentUser = authService.getCurrentUser();
+        if (!(comment.getBlogUserId().equals(currentUser.getId()) ||
+                comment.getBloger().getId().equals(currentUser.getId()))) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
+        }
+
+        if (comment.getIsDeleted()) {
+            throw new SpringBlogusException("이미 삭제된 댓글입니다.");
+        }
+
+        comment.setIsDeleted(true);
+        comment.setContent(DELETED_CONTENT);
+        comment.setUpdatedAt(Instant.now());
+        commentRepository.save(comment);
+
         return commentMapper.commentToCommentResponse(comment);
     }
 }

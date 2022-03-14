@@ -33,10 +33,18 @@ public class Comment {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    @Column(nullable = false)
+    private Boolean isDeleted;
+
     @ManyToOne(fetch = FetchType.LAZY)
     private Bloger bloger;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "b_id", referencedColumnName = "id")
     private Blog blog;
+
+    @PrePersist
+    public void prePersist() {
+        this.isDeleted = this.isDeleted != null && this.isDeleted;
+    }
 }
