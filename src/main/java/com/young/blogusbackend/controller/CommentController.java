@@ -2,6 +2,7 @@ package com.young.blogusbackend.controller;
 
 import com.young.blogusbackend.dto.CommentCreateRequest;
 import com.young.blogusbackend.dto.CommentResponse;
+import com.young.blogusbackend.dto.CommentUpdateRequest;
 import com.young.blogusbackend.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,5 +28,14 @@ public class CommentController {
     @ResponseStatus(HttpStatus.OK)
     public List<CommentResponse> getCommentsByBlogId(@PathVariable Long id) {
         return commentService.getCommentsByBlogId(id);
+    }
+
+    @PatchMapping("/{id}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommentResponse updateComment(
+            @PathVariable Long id,
+            @RequestBody CommentUpdateRequest updateRequest
+    ) {
+        return commentService.updateComment(id, updateRequest);
     }
 }

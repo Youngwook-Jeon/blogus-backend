@@ -2,6 +2,7 @@ package com.young.blogusbackend.service;
 
 import com.young.blogusbackend.dto.CommentCreateRequest;
 import com.young.blogusbackend.dto.CommentResponse;
+import com.young.blogusbackend.dto.CommentUpdateRequest;
 import com.young.blogusbackend.exception.SpringBlogusException;
 import com.young.blogusbackend.mapper.CommentMapper;
 import com.young.blogusbackend.model.Blog;
@@ -10,10 +11,13 @@ import com.young.blogusbackend.model.Comment;
 import com.young.blogusbackend.repository.BlogRepository;
 import com.young.blogusbackend.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +39,21 @@ public class CommentService {
     }
 
     public List<CommentResponse> getCommentsByBlogId(Long blogId) {
-        List<Comment> commentList = commentRepository.findAllByBlogId(blogId);
+        List<Comment> commentList = commentRepository.findAllByBlogIdOrderByCreatedAt(blogId);
         return commentMapper.commentListToCommentResponseList(commentList);
+    }
+
+    public CommentResponse updateComment(Long id, CommentUpdateRequest updateRequest) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new SpringBlogusException("존재하지 않는 댓글입니다."));
+        Bloger currentUser = authService.getCurrentUser();
+        if (!Objects.equals(currentUser.getId(), comment.getBloger().getId())) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
+        }
+
+        comment.setContent(updateRequest.getContent());
+        comment.setUpdatedAt(Instant.now());
+        commentRepository.save(comment);
+        return commentMapper.commentToCommentResponse(comment);
     }
 }
