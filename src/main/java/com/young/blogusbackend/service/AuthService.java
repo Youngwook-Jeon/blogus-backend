@@ -7,7 +7,6 @@ import com.young.blogusbackend.exception.SpringBlogusException;
 import com.young.blogusbackend.mapper.BlogerMapper;
 import com.young.blogusbackend.model.Bloger;
 import com.young.blogusbackend.model.NotificationEmail;
-import com.young.blogusbackend.model.Role;
 import com.young.blogusbackend.model.VerificationToken;
 import com.young.blogusbackend.repository.BlogerRepository;
 import com.young.blogusbackend.repository.VerificationTokenRepository;
@@ -25,10 +24,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -42,21 +40,14 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final Environment env;
-    private final TemplateEngine templateEngine;
+    private final ITemplateEngine templateEngine;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
     private final BlogerMapper blogerMapper;
 
     public void register(RegisterRequest registerRequest) {
-        Bloger bloger = Bloger.builder()
-                .name(registerRequest.getName())
-                .email(registerRequest.getEmail())
-                .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .role(Role.ROLE_USER)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .enabled(false)
-                .build();
+        Bloger bloger = blogerMapper.registerRequestToBlog(registerRequest);
+        bloger.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
         blogerRepository.save(bloger);
         sendConfirmEmail(bloger);
