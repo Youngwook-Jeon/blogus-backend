@@ -7,6 +7,7 @@ import com.young.blogusbackend.exception.SpringBlogusException;
 import com.young.blogusbackend.mapper.BlogerMapper;
 import com.young.blogusbackend.model.Bloger;
 import com.young.blogusbackend.model.NotificationEmail;
+import com.young.blogusbackend.model.Role;
 import com.young.blogusbackend.model.VerificationToken;
 import com.young.blogusbackend.repository.BlogerRepository;
 import com.young.blogusbackend.repository.VerificationTokenRepository;
@@ -17,6 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,6 +29,7 @@ import org.springframework.util.StringUtils;
 import org.thymeleaf.ITemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -105,7 +108,11 @@ public class AuthService {
              authentication = authenticationManager
                     .authenticate(
                             new UsernamePasswordAuthenticationToken(
-                                    loginRequest.getEmail(),
+                                    new User(
+                                            loginRequest.getEmail(),
+                                            loginRequest.getPassword(),
+                                            Collections.singleton(new SimpleGrantedAuthority(Role.ROLE_USER.name()))
+                                    ),
                                     loginRequest.getPassword()
                             )
                     );
