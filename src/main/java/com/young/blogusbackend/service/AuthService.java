@@ -47,6 +47,10 @@ public class AuthService {
 
     public void register(RegisterRequest registerRequest) {
         Bloger bloger = blogerMapper.registerRequestToBlog(registerRequest);
+        Optional<Bloger> blogerOptional = blogerRepository.findByEmail(bloger.getEmail());
+        if (blogerOptional.isPresent()) {
+            throw new SpringBlogusException("이미 존재하는 유저입니다.");
+        }
         bloger.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
         blogerRepository.save(bloger);
@@ -91,10 +95,6 @@ public class AuthService {
 
     private void fetchEnableUser(VerificationToken verificationToken) {
         Bloger bloger = verificationToken.getBloger();
-        if (bloger == null) {
-            throw new SpringBlogusException("존재하지 않는 유저입니다.");
-        }
-
         bloger.setEnabled(true);
         blogerRepository.save(bloger);
     }

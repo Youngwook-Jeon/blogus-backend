@@ -4,6 +4,7 @@ import com.young.blogusbackend.dto.AuthenticationResponse;
 import com.young.blogusbackend.dto.BlogerResponse;
 import com.young.blogusbackend.dto.LoginRequest;
 import com.young.blogusbackend.dto.RegisterRequest;
+import com.young.blogusbackend.exception.SpringBlogusException;
 import com.young.blogusbackend.mapper.BlogerMapper;
 import com.young.blogusbackend.model.Bloger;
 import com.young.blogusbackend.model.NotificationEmail;
@@ -32,10 +33,11 @@ import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
@@ -82,6 +84,8 @@ class AuthServiceTests {
                         ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC), false);
         when(mockBlogerMapper.registerRequestToBlog(registerRequest)).thenReturn(bloger);
 
+        when(mockBlogerRepository.findByEmail(bloger.getEmail())).thenReturn(Optional.empty());
+
         when(mockPasswordEncoder.encode("password")).thenReturn("password");
 
         // Configure BlogerRepository.save(...).
@@ -109,8 +113,9 @@ class AuthServiceTests {
         verify(mockMailService).sendMail(any(NotificationEmail.class));
     }
 
+    @DisplayName("test for registration when a user is already in DB")
     @Test
-    void testRegister_EnvironmentReturnsNull() {
+    void testRegister_whenRequestedUserIsAlreadyInDB() {
         // Setup
         final RegisterRequest registerRequest = new RegisterRequest("name", "email", "password", "cfPassword");
 
@@ -118,114 +123,52 @@ class AuthServiceTests {
         final Bloger bloger = new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
                 LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
                         ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC), false);
-        when(mockBlogerMapper.registerRequestToBlog(
-                new RegisterRequest("name", "email", "password", "cfPassword"))).thenReturn(bloger);
+        when(mockBlogerMapper.registerRequestToBlog(registerRequest)).thenReturn(bloger);
 
-        when(mockPasswordEncoder.encode("password")).thenReturn("password");
-
-        // Configure BlogerRepository.save(...).
-        final Bloger bloger1 = new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                        ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC), false);
-        when(mockBlogerRepository.save(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false))).thenReturn(bloger1);
-
-        when(mockEnv.getProperty("blogus.client")).thenReturn(null);
-
-        // Configure VerificationTokenRepository.save(...).
-        final VerificationToken verificationToken = new VerificationToken(0L, "token",
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                ZoneOffset.UTC));
-        when(mockVerificationTokenRepository.save(new VerificationToken(0L, "token",
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                ZoneOffset.UTC)))).thenReturn(verificationToken);
-
-        when(mockTemplateEngine.process(eq("mailTemplate"), any(IContext.class))).thenReturn("body");
+        when(mockBlogerRepository.findByEmail(bloger.getEmail())).thenReturn(Optional.of(bloger));
 
         // Run the test
-        authServiceUnderTest.register(registerRequest);
+        assertThrows(SpringBlogusException.class, () -> authServiceUnderTest.register(registerRequest));
 
         // Verify the results
-        verify(mockBlogerRepository).save(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false));
-        verify(mockVerificationTokenRepository).save(new VerificationToken(0L, "token",
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                ZoneOffset.UTC)));
-        verify(mockMailService).sendMail(new NotificationEmail("subject", "recipient", "body"));
+        verify(mockBlogerRepository, never()).save(any(Bloger.class));
+        verify(mockMailService, never()).sendMail(any(NotificationEmail.class));
     }
 
+    @DisplayName("test for verifying an account if token exists")
     @Test
     void testVerifyAccount() {
         // Setup
-        // Configure VerificationTokenRepository.findByToken(...).
-        final Optional<VerificationToken> verificationToken = Optional.of(new VerificationToken(0L, "token",
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                ZoneOffset.UTC)));
-        when(mockVerificationTokenRepository.findByToken("token")).thenReturn(verificationToken);
-
-        // Configure BlogerRepository.save(...).
         final Bloger bloger = new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
                 LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
                         ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC), false);
-        when(mockBlogerRepository.save(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false))).thenReturn(bloger);
+
+        // Configure VerificationTokenRepository.findByToken(...).
+        final Optional<VerificationToken> verificationToken = Optional.of(new VerificationToken(0L, "token", bloger, LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC)));
+        when(mockVerificationTokenRepository.findByToken("token")).thenReturn(verificationToken);
+
+        // Configure BlogerRepository.save(...).
+        when(mockBlogerRepository.save(bloger)).thenReturn(bloger);
 
         // Run the test
         authServiceUnderTest.verifyAccount("token");
 
         // Verify the results
-        verify(mockBlogerRepository).save(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false));
+        verify(mockBlogerRepository).save(bloger);
+        assertThat(bloger.isEnabled()).isTrue();
     }
 
+    @DisplayName("test for verifying an account if token does not exist")
     @Test
     void testVerifyAccount_VerificationTokenRepositoryReturnsAbsent() {
         // Setup
         when(mockVerificationTokenRepository.findByToken("token")).thenReturn(Optional.empty());
 
-        // Configure BlogerRepository.save(...).
-        final Bloger bloger = new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                        ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC), false);
-        when(mockBlogerRepository.save(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false))).thenReturn(bloger);
-
         // Run the test
-        authServiceUnderTest.verifyAccount("token");
+        assertThrows(SpringBlogusException.class, () -> authServiceUnderTest.verifyAccount("token"));
 
         // Verify the results
-        verify(mockBlogerRepository).save(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false));
+        verify(mockBlogerRepository, never()).save(any(Bloger.class));
     }
 
     @Test
