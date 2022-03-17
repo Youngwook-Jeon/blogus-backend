@@ -139,15 +139,14 @@ public class AuthService {
     }
 
     public Bloger getCurrentUser() {
-        User principal = (User) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
-        return blogerRepository.findByEmail(principal.getUsername())
-                .orElseThrow(
-                        () -> new UsernameNotFoundException(
-                                principal.getUsername() + " 계정을 찾을 수 없습니다."
-                        )
-                );
+        try {
+            User principal = (User) SecurityContextHolder.getContext()
+                    .getAuthentication()
+                    .getPrincipal();
+            return blogerRepository.findByEmail(principal.getUsername()).get();
+        } catch (Exception e) {
+            throw new UsernameNotFoundException("계정을 찾을 수 없습니다.");
+        }
     }
 
     public AuthenticationResponse refreshToken(String token) {

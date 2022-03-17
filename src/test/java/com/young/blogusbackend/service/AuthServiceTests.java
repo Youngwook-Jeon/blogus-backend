@@ -23,9 +23,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.thymeleaf.ITemplateEngine;
@@ -232,63 +233,36 @@ class AuthServiceTests {
         verify(mockBlogerRepository, never()).save(any(Bloger.class));
     }
 
+    @DisplayName("test for getting current user")
     @Test
-    void testLogin_AuthenticationManagerThrowsAuthenticationException() {
+    void testGetCurrentUser() {
         // Setup
-        final LoginRequest loginRequest = new LoginRequest("email", "password");
-        final AuthenticationResponse expectedResult = new AuthenticationResponse("msg", "accessToken", "refreshToken",
-                new BlogerResponse(0L, "name", "email", "avatar", "role", false, "createdAt"));
-        when(mockAuthenticationManager.authenticate(null)).thenThrow(AuthenticationException.class);
-
-        // Configure BlogerRepository.findByEmail(...).
-        final Optional<Bloger> blogerOptional = Optional.of(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false));
-        when(mockBlogerRepository.findByEmail("username")).thenReturn(blogerOptional);
-
-        when(mockJwtProvider.generateRefreshToken(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false))).thenReturn("refreshToken");
-
-        // Configure BlogerRepository.save(...).
-        final Bloger bloger = new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
+        final Authentication authentication = new UsernamePasswordAuthenticationToken(new User("mayerjeon@gmail.com", "password", Collections.singleton(new SimpleGrantedAuthority(Role.ROLE_USER.name()))), "password");
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        final Bloger bloger = new Bloger(0L, "name", "mayerjeon@gmail.com", "password", "avatar", Role.ROLE_USER, "refreshToken",
                 LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
                         ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC), false);
-        when(mockBlogerRepository.save(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false))).thenReturn(bloger);
-
-        when(mockJwtProvider.generateAccessToken(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false))).thenReturn("accessToken");
-
-        // Configure BlogerMapper.blogerToBlogerResponse(...).
-        final BlogerResponse blogerResponse = new BlogerResponse(0L, "name", "email", "avatar", "role", false,
-                "createdAt");
-        when(mockBlogerMapper.blogerToBlogerResponse(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false))).thenReturn(blogerResponse);
+        // Configure BlogerRepository.findByEmail(...)
+        when(mockBlogerRepository.findByEmail("mayerjeon@gmail.com")).thenReturn(Optional.of(bloger));
 
         // Run the test
-        final AuthenticationResponse result = authServiceUnderTest.login(loginRequest);
+        Bloger currentUser = authServiceUnderTest.getCurrentUser();
 
         // Verify the results
-        assertThat(result).isEqualTo(expectedResult);
-        verify(mockBlogerRepository).save(
-                new Bloger(0L, "name", "email", "password", "avatar", Role.ROLE_USER, "refreshToken",
-                        LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(
-                                ZoneOffset.UTC), LocalDateTime.of(2020, 1, 1, 0, 0, 0, 0).toInstant(ZoneOffset.UTC),
-                        false));
+        assertThat(currentUser).isEqualTo(bloger);
+    }
+
+    @DisplayName("test for getting current user when the authentication is null")
+    @Test
+    void testGetCurrentUser_whenAuthenticationIsNull() {
+        // Setup
+        SecurityContextHolder.getContext().setAuthentication(null);
+
+        // Run the test
+        assertThrows(UsernameNotFoundException.class, () -> authServiceUnderTest.getCurrentUser());
+
+        // Verify the results
+        verify(mockBlogerRepository, never()).findByEmail(any(String.class));
     }
 
     @Test
