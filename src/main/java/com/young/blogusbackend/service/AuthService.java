@@ -79,7 +79,7 @@ public class AuthService {
         mailService.sendMail(email);
     }
 
-    private String generateVerificationToken(Bloger bloger) {
+    public String generateVerificationToken(Bloger bloger) {
         String token = UUID.randomUUID().toString();
         VerificationToken verificationToken = new VerificationToken();
         verificationToken.setToken(token);

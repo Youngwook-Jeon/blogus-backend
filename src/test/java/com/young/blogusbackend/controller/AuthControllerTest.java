@@ -5,8 +5,10 @@ import com.young.blogusbackend.dto.RegisterRequest;
 import com.young.blogusbackend.model.Bloger;
 import com.young.blogusbackend.model.NotificationEmail;
 import com.young.blogusbackend.repository.BlogerRepository;
+import com.young.blogusbackend.service.AuthService;
 import com.young.blogusbackend.service.MailService;
 import com.young.blogusbackend.util.MockMvcTest;
+import com.young.blogusbackend.util.TestUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +17,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.then;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,6 +40,9 @@ class AuthControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private AuthService authService;
 
     @MockBean
     MailService mailService;
@@ -64,20 +70,49 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.msg", is("등록에 성공했습니다. 이메일을 확인해주세요.")));
     }
 
-//    @Test
-//    void testVerifyAccount() throws Exception {
-//        // Setup
-//        // Run the test
-//        final MockHttpServletResponse response = mockMvc.perform(get("/api/auth/accountVerification/{token}", "token")
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andReturn().getResponse();
-//
-//        // Verify the results
-//        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-//        assertThat(response.getContentAsString()).isEqualTo("expectedResponse");
-//        verify(mockAuthService).verifyAccount("token");
-//    }
-//
+    @DisplayName("test for register with wrong request")
+    @Test
+    void testRegister_givenRequestIsWrong_returnsWithBadRequestStatus() throws Exception {
+        // Setup
+        RegisterRequest registerRequest =
+                new RegisterRequest("m", "wrongemail@", "P4ssword!@#$", "P4ssword");
+
+        // Run the test
+        ResultActions resultActions = mockMvc.perform(post("/api/auth/register")
+                .content(objectMapper.writeValueAsString(registerRequest)).contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON));
+
+        // Verify the results
+        List<Bloger> blogers = blogerRepository.findAll();
+        assertThat(blogers.size()).isEqualTo(0);
+
+        resultActions.andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @DisplayName("test for verify account")
+    @Test
+    void testVerifyAccount() throws Exception {
+        // Setup
+        Bloger bloger = TestUtil.createValidUserNotEnabled();
+        blogerRepository.save(bloger);
+        String token = authService.generateVerificationToken(bloger);
+
+        // Run the test
+        ResultActions resultActions =
+                mockMvc.perform(get("/api/auth/accountVerification/{token}", token)
+                        .accept(MediaType.APPLICATION_JSON));
+
+        // Verify the results
+        Optional<Bloger> blogerOptional = blogerRepository.findByEmail(TestUtil.VALID_USER_EMAIL);
+        assertThat(blogerOptional.isPresent()).isTrue();
+        assertThat(blogerOptional.get().isEnabled()).isTrue();
+
+        resultActions.andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.msg", is("계정이 활성화되었습니다.")));
+    }
+
 //    @Test
 //    void testLogin() throws Exception {
 //        // Setup

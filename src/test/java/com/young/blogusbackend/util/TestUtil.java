@@ -22,4 +22,10 @@ public class TestUtil {
                 .enabled(true)
                 .build();
     }
+
+    public static Bloger createValidUserNotEnabled() {
+        Bloger bloger = createValidUser();
+        bloger.setEnabled(false);
+        return bloger;
+    }
 }
